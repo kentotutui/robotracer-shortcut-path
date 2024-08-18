@@ -1,6 +1,7 @@
 %data = load("2024AllJapan_Dis,theta.txt");
 %data = load("reRoeasymap_Dis,theta.txt");
-data = load("reRomap_xy.txt");
+%data = load("reRomap_xy.txt");
+data = load("Distance, Theta.txt");
 
 AllEuclideanDistance = 0;
 
@@ -24,12 +25,12 @@ Th = [];
 
 % 距離と角度の値を反復処理
 for i = 1:length(distance)
-    %x = x + distance(i) * cos(th + theta_adj(i)/2); % 10mmの距離をx座標に変換
-    %y = y + distance(i) * sin(th + theta_adj(i)/2); % 10mmの距離をy座標に変換
-    %th = th + theta(i); % 角度を調整
-    x = distance(i);%x座標
-    y = theta(i);%y座標
-
+    x = x + distance(i) * cos(th + theta_adj(i)/2); % 10mmの距離をx座標に変換
+    y = y + distance(i) * sin(th + theta_adj(i)/2); % 10mmの距離をy座標に変換
+    th = th + theta_adj(i); % 角度を調整
+    %x = distance(i);%x座標
+    %y = theta(i);%y座標
+%{
     if i > 1
         dx = x - X(end); % x方向の差
         dy = y - Y(end); % y方向の差
@@ -49,7 +50,7 @@ for i = 1:length(distance)
     else
         th = atan2(y, x); % 最初のポイントはそのまま角度を計算
     end
-
+%}
     X = [X x];
     Y = [Y y];
     Th = [Th th];
@@ -77,7 +78,7 @@ Th_smooth = Th(1); % 初期角度も追加
 
 % 移動平均を計算
 for i = 2:numel(X)
-    windowSize = min(i, 50); % 窓のサイズを設定
+    windowSize = min(i, 15); % 窓のサイズを設定
     if i <= windowSize
         temp_x = sum(X(1:i)) / i; % Xの移動平均
         temp_y = sum(Y(1:i)) / i; % Yの移動平均
