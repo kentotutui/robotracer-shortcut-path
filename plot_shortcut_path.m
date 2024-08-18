@@ -7,7 +7,6 @@ AllEuclideanDistance = 0;
 % 距離と角度の列を抽出
 distance = data(:, 1);
 theta = data(:, 2);
-
 theta_adj = theta .* 1;
 
 % ゼロでない距離のみを抽出
