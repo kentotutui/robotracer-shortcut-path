@@ -65,7 +65,6 @@ end
 X_smooth = [];
 Y_smooth = [];
 Th_smooth = [];
-Th_delta = [];
 EuclideanDistance = [];
 AllEuclideanDistance_shortcut = 0; % ユークリッド距離の総和の初期化
 distance_threshold = 30; % 距離のしきい値を設定（例：10mm）
@@ -106,10 +105,9 @@ for i = 2:numel(X)
             new_th2 = new_th2 + 2 * pi;
         end
 
-        delta_th3 = new_th2 - Th_smooth(end);
+        
         
         Th_smooth = [Th_smooth new_th2]; % 補正した角度を使用
-        Th_delta = [Th_delta delta_th3];
         
         % ユークリッド距離を保存
         EuclideanDistance = [EuclideanDistance euclidean_dist];
@@ -144,12 +142,6 @@ fid = fopen(output_file, 'w');
 fprintf(fid, '%f\n', Th_smooth);
 fclose(fid);
 disp('atan2で計算された角速度がファイルに保存されました。');
-
-output_file = 'atan2_delta.txt';
-fid = fopen(output_file, 'w');
-fprintf(fid, '%f\n', Th_delta);
-fclose(fid);
-disp('比較した角速度がファイルに保存されました。');
 
 % オリジナルコースとショートカットコースをプロット
 figure(1);
