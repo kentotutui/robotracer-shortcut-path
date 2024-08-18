@@ -78,7 +78,7 @@ Th_smooth = Th(1); % 初期角度も追加
 
 % 移動平均を計算
 for i = 2:numel(X)
-    windowSize = min(i, 15); % 窓のサイズを設定
+    windowSize = min(i, 10); % 窓のサイズを設定
     if i <= windowSize
         temp_x = sum(X(1:i)) / i; % Xの移動平均
         temp_y = sum(Y(1:i)) / i; % Yの移動平均
