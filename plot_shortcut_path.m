@@ -86,6 +86,7 @@ for i = 2:numel(X)
     end
     
     euclidean_dist = sqrt((temp_x - X_smooth(end))^2 + (temp_y - Y_smooth(end))^2);
+    
     if euclidean_dist > distance_threshold
         % 新しい座標を追加
         X_smooth = [X_smooth temp_x];
