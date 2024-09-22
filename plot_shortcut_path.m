@@ -1,7 +1,7 @@
 %data = load("2024AllJapan_Dis,theta.txt");
 %data = load("reRoeasymap_Dis,theta.txt");
-%data = load("reRomap_xy.txt");
-data = load("Distance, Theta.txt");
+data = load("reRomap_xy.txt");
+%data = load("Distance, Theta.txt");
 
 AllEuclideanDistance = 0;
 
@@ -22,43 +22,37 @@ th = 0;
 X = [];
 Y = [];
 Th = [];
+originmap_EucildeanDistance = [];
+array_originmap_atan2 = [];
 
 % 距離と角度の値を反復処理
 for i = 1:length(distance)
-    x = x + distance(i) * cos(th + theta_adj(i)/2); % 10mmの距離をx座標に変換
-    y = y + distance(i) * sin(th + theta_adj(i)/2); % 10mmの距離をy座標に変換
+    %x = x + distance(i) * cos(th + theta_adj(i)/2); % 10mmの距離をx座標に変換
+    %y = y + distance(i) * sin(th + theta_adj(i)/2); % 10mmの距離をy座標に変換
     th = th + theta_adj(i); % 角度を調整
-    %x = distance(i);%x座標
-    %y = theta(i);%y座標
-%{
-    if i > 1
-        dx = x - X(end); % x方向の差
-        dy = y - Y(end); % y方向の差
-        new_th = atan2(dy, dx); % 前の座標との角度を計算
+    x = distance(i);%x座標
+    y = theta(i);%y座標 thetaと書いてあるが，実際はy座標
 
-        % 前の角度との差を計算
-        delta_th = new_th - Th(end);
-        
-        % 急激な変化があった場合の補正 -9から-3になる不具合は修正されていない 実機のプログラムは克服済みなので，問題ない
-        if delta_th > pi
-            new_th = new_th - 2 * pi;
-        elseif delta_th < -pi
-            new_th = new_th + 2 * pi;
-        end
-        
-        th = new_th; % 補正した角度を使用
-    else
-        th = atan2(y, x); % 最初のポイントはそのまま角度を計算
-    end
-%}
     X = [X x];
     Y = [Y y];
     Th = [Th th];
 end
 
+origin_atan2 = atan2(Y(2)-Y(1), X(2)-X(1)); % 最初の角度を計算
+array_originmap_atan2 = [origin_atan2]; % 最初の角度を配列に追加
+
 % コースの全体距離を計算
 for i = 1:length(X)-1
     EuclideanDistance(i) = sqrt((X(i+1) - X(i))^2 + (Y(i+1) - Y(i))^2);
+    originmap_EucildeanDistance = [originmap_EucildeanDistance EuclideanDistance(i)];
+    origin_atan2 = atan2(Y(i+1)-Y(i),X(i+1)-X(i));
+    delta_origin_atan2 = origin_atan2 - array_originmap_atan2(end);
+    if delta_origin_atan2 > pi
+        origin_atan2 = origin_atan2 - 2 * pi;
+    elseif delta_th2 < -pi
+        origin_atan2 = origin_atan2 + 2 * pi;
+    end
+    array_originmap_atan2 = [array_originmap_atan2 origin_atan2];
     AllEuclideanDistance = AllEuclideanDistance + EuclideanDistance(i);
 end
 
@@ -69,7 +63,7 @@ Th_smooth = [];
 Th_delta = [];
 EuclideanDistance = [];
 AllEuclideanDistance_shortcut = 0; % ユークリッド距離の総和の初期化
-distance_threshold = 30; % 距離のしきい値を設定（例：10mm）
+distance_threshold = 1; % 距離のしきい値を設定（例：10mm）
 
 % 最初の点を追加
 X_smooth = X(1);
@@ -77,8 +71,12 @@ Y_smooth = Y(1);
 Th_smooth = Th(1); % 初期角度も追加
 
 % 移動平均を計算
-for i = 2:numel(X)
-    windowSize = min(i, 10); % 窓のサイズを設定
+n = numel(X);
+for i = 2:n
+    % 終点に近づくとき、窓のサイズを徐々に小さくする
+    remaining_points = n - i + 1;
+    windowSize = min(min(i, remaining_points), 50); % 窓のサイズを設定
+
     if i <= windowSize
         temp_x = sum(X(1:i)) / i; % Xの移動平均
         temp_y = sum(Y(1:i)) / i; % Yの移動平均
@@ -99,7 +97,7 @@ for i = 2:numel(X)
         dy = temp_y - Y_smooth(end-1); % y方向の差
         new_th2 = atan2(dy, dx); % 前の座標との角度を計算
 
-        % 急激な変化があった場合の補正
+        % atan2の例外処理
         delta_th2 = new_th2 - Th_smooth(end);
         if delta_th2 > pi
             new_th2 = new_th2 - 2 * pi;
@@ -107,7 +105,7 @@ for i = 2:numel(X)
             new_th2 = new_th2 + 2 * pi;
         end
 
-        delta_th3 = new_th2 - Th_smooth(end);
+        delta_th3 = new_th2 - Th_smooth(end);%角速度の差分
         
         Th_smooth = [Th_smooth new_th2]; % 補正した角度を使用
         Th_delta = [Th_delta delta_th3];
@@ -125,6 +123,19 @@ fprintf('%.0fmm\n', AllEuclideanDistance);
 
 disp('ショートカット経路の総距離:')
 fprintf('%.0fmm\n', AllEuclideanDistance_shortcut);
+
+output_file = 'originmap_atan2.txt';
+fid = fopen(output_file, 'w');
+fprintf(fid, '%f\n', [array_originmap_atan2]);
+fclose(fid);
+disp('オリジナルマップの角度をファイルに保存されました。');
+
+% 元マップの座標間のユークリッド距離
+output_file = 'originmap_EuclideanDistance.txt';
+fid = fopen(output_file, 'w');
+fprintf(fid, '%f\n', [originmap_EucildeanDistance]);
+fclose(fid);
+disp('オリジナルマップのユークリッド距離をファイルに保存されました。');
 
 % ショートカット経路座標をファイルに保存
 output_file = 'Shortcatdata_output.txt';
