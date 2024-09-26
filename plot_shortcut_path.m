@@ -24,6 +24,7 @@ Y = [];
 Th = [];
 originmap_EucildeanDistance = [];
 array_originmap_atan2 = [];
+array_radius = [];
 
 % 距離と角度の値を反復処理
 for i = 1:length(distance)
@@ -49,10 +50,16 @@ for i = 1:length(X)-1
     delta_origin_atan2 = origin_atan2 - array_originmap_atan2(end);
     if delta_origin_atan2 > pi
         origin_atan2 = origin_atan2 - 2 * pi;
-    elseif delta_th2 < -pi
+    elseif delta_origin_atan2 < -pi
         origin_atan2 = origin_atan2 + 2 * pi;
     end
+    delta_origin_atan2_2 = origin_atan2 - array_originmap_atan2(end);
+    radius = abs(EuclideanDistance(i) / delta_origin_atan2_2);
+    if radius > 10000
+        radius = 10000;
+    end
     array_originmap_atan2 = [array_originmap_atan2 origin_atan2];
+    array_radius = [array_radius radius];
     AllEuclideanDistance = AllEuclideanDistance + EuclideanDistance(i);
 end
 
@@ -124,6 +131,14 @@ fprintf('%.0fmm\n', AllEuclideanDistance);
 disp('ショートカット経路の総距離:')
 fprintf('%.0fmm\n', AllEuclideanDistance_shortcut);
 
+% 元マップの曲率半径
+output_file = 'originmap_radius.txt';
+fid = fopen(output_file, 'w');
+fprintf(fid, '%f\n', [array_radius]);
+fclose(fid);
+disp('オリジナルマップの角度をファイルに保存されました。');
+
+% 元マップの角度
 output_file = 'originmap_atan2.txt';
 fid = fopen(output_file, 'w');
 fprintf(fid, '%f\n', [array_originmap_atan2]);
