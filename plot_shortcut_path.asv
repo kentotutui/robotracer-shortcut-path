@@ -69,7 +69,6 @@ Y_smooth = [];
 Th_smooth = [];
 Th_delta = [];
 EuclideanDistance = [];
-array_shortcatmap_radius = [];
 AllEuclideanDistance_shortcut = 0; % ユークリッド距離の総和の初期化
 distance_threshold = 1; % 距離のしきい値を設定（例：10mm）
 
@@ -118,11 +117,7 @@ for i = 2:n
         Th_smooth = [Th_smooth new_th2]; % 補正した角度を使用
         Th_delta = [Th_delta delta_th3];
 
-        shortcatmap_radius = abs(euclidean_dist / delta_th3);
-        if shortcatmap_radius > 10000
-           shortcatmap_radius = 10000;
-        end
-        array_shortcatmap_radius = [array_shortcatmap_radius shortcatmap_radius];
+        shortcatmap_radius = abs();
         
         % ユークリッド距離を保存
         EuclideanDistance = [EuclideanDistance euclidean_dist];
@@ -184,12 +179,6 @@ fid = fopen(output_file, 'w');
 fprintf(fid, '%f\n', Th_delta);
 fclose(fid);
 disp('比較した角速度がファイルに保存されました。');
-
-output_file = 'shortcutmap_radius.txt';
-fid = fopen(output_file, 'w');
-fprintf(fid, '%f\n', array_shortcatmap_radius);
-fclose(fid);
-disp('ショートカット経路の曲率半径がファイルに保存されました。');
 
 % オリジナルコースとショートカットコースをプロット
 figure(1);
