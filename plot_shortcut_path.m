@@ -55,8 +55,8 @@ for i = 1:length(X)-1
     end
     delta_origin_atan2_2 = origin_atan2 - array_originmap_atan2(end);
     radius = abs(EuclideanDistance(i) / delta_origin_atan2_2);
-    if radius > 10000
-        radius = 10000;
+    if radius > 1000
+        radius = 1000;
     end
     array_originmap_atan2 = [array_originmap_atan2 origin_atan2];
     array_radius = [array_radius radius];
@@ -69,7 +69,7 @@ Y_smooth = [];
 Th_smooth = [];
 Th_delta = [];
 EuclideanDistance = [];
-array_shortcatmap_radius = [];
+array_shortcutmap_radius = [];
 AllEuclideanDistance_shortcut = 0; % ユークリッド距離の総和の初期化
 distance_threshold = 1; % 距離のしきい値を設定（例：10mm）
 
@@ -84,6 +84,11 @@ for i = 2:n
     % 終点に近づくとき、窓のサイズを徐々に小さくする
     remaining_points = n - i + 1;
     windowSize = min(min(i, remaining_points), 50); % 窓のサイズを設定
+
+    % shortcutmap_radiusが200以下のときはwindowSizeを1にする
+    if exist('radius', 'var') && array_radius(i - 1) <= 200
+        windowSize = 1;
+    end
 
     if i <= windowSize
         temp_x = sum(X(1:i)) / i; % Xの移動平均
@@ -113,16 +118,17 @@ for i = 2:n
             new_th2 = new_th2 + 2 * pi;
         end
 
-        delta_th3 = new_th2 - Th_smooth(end);%角速度の差分
+        delta_th3 = new_th2 - Th_smooth(end); % 角速度の差分
         
         Th_smooth = [Th_smooth new_th2]; % 補正した角度を使用
         Th_delta = [Th_delta delta_th3];
 
-        shortcatmap_radius = abs(euclidean_dist / delta_th3);
-        if shortcatmap_radius > 10000
-           shortcatmap_radius = 10000;
+        shortcutmap_radius = abs(euclidean_dist / delta_th3);
+        if shortcutmap_radius > 1000
+           shortcutmap_radius = 1000;
         end
-        array_shortcatmap_radius = [array_shortcatmap_radius shortcatmap_radius];
+        
+        array_shortcutmap_radius = [array_shortcutmap_radius shortcutmap_radius];
         
         % ユークリッド距離を保存
         EuclideanDistance = [EuclideanDistance euclidean_dist];
@@ -160,7 +166,7 @@ fclose(fid);
 disp('オリジナルマップのユークリッド距離をファイルに保存されました。');
 
 % ショートカット経路座標をファイルに保存
-output_file = 'Shortcatdata_output.txt';
+output_file = 'Shortcutdata_output.txt';
 fid = fopen(output_file, 'w');
 fprintf(fid, '%f %f\n', [X_smooth; Y_smooth]);
 fclose(fid);
