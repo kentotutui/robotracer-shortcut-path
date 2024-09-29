@@ -193,7 +193,7 @@ disp('比較した角速度がファイルに保存されました。');
 
 output_file = 'shortcutmap_radius.txt';
 fid = fopen(output_file, 'w');
-fprintf(fid, '%f\n', array_shortcatmap_radius);
+fprintf(fid, '%f\n', array_shortcutmap_radius);
 fclose(fid);
 disp('ショートカット経路の曲率半径がファイルに保存されました。');
 
