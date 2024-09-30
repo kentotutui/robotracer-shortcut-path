@@ -86,7 +86,8 @@ for i = 2:n
     windowSize = min(min(i, remaining_points), 50); % 窓のサイズを設定
 
     % shortcutmap_radiusが200以下のときはwindowSizeを1にする
-    if exist('radius', 'var') && array_radius(i - 1) <= 250
+    
+    if exist('radius', 'var') && array_radius(i - 1) <= 300
         windowSize = 1;
     end
 
