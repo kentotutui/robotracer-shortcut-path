@@ -83,13 +83,14 @@ n = numel(X);
 for i = 2:n
     % 終点に近づくとき、窓のサイズを徐々に小さくする
     remaining_points = n - i + 1;
-    windowSize = min(min(i, remaining_points), 50); % 窓のサイズを設定
+    windowSize = min(min(i, remaining_points), 30); % 窓のサイズを設定
 
     % shortcutmap_radiusが200以下のときはwindowSizeを1にする
-    
+    %{
     if exist('radius', 'var') && array_radius(i - 1) <= 300
         windowSize = 1;
     end
+    %}
 
     if i <= windowSize
         temp_x = sum(X(1:i)) / i; % Xの移動平均
