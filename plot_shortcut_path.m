@@ -1,7 +1,9 @@
+data = load("2025AllJapan_Dis,theta.txt");
 %data = load("2024AllJapan_Dis,theta.txt");
 %data = load("reRoeasymap_Dis,theta.txt");
-data = load("reRomap_xy.txt");
+%data = load("reRomap_xy.txt");
 %data = load("Distance, Theta.txt");
+%data = load("reRomap_Dis,The.txt")
 
 AllEuclideanDistance = 0;
 
@@ -28,11 +30,11 @@ array_radius = [];
 
 % 距離と角度の値を反復処理
 for i = 1:length(distance)
-    %x = x + distance(i) * cos(th + theta_adj(i)/2); % 10mmの距離をx座標に変換
-    %y = y + distance(i) * sin(th + theta_adj(i)/2); % 10mmの距離をy座標に変換
+    x = x + distance(i) * cos(th + theta_adj(i)/2); % 10mmの距離をx座標に変換
+    y = y + distance(i) * sin(th + theta_adj(i)/2); % 10mmの距離をy座標に変換
     th = th + theta_adj(i); % 角度を調整
-    x = distance(i);%x座標
-    y = theta(i);%y座標 thetaと書いてあるが，実際はy座標
+    %x = distance(i);%x座標
+    %y = theta(i);%y座標 thetaと書いてあるが，実際はy座標
 
     X = [X x];
     Y = [Y y];
@@ -58,6 +60,7 @@ for i = 1:length(X)-1
     if radius > 1000
         radius = 1000;
     end
+
     array_originmap_atan2 = [array_originmap_atan2 origin_atan2];
     array_radius = [array_radius radius];
     AllEuclideanDistance = AllEuclideanDistance + EuclideanDistance(i);
@@ -83,7 +86,8 @@ n = numel(X);
 for i = 2:n
     % 終点に近づくとき、窓のサイズを徐々に小さくする
     remaining_points = n - i + 1;
-    windowSize = min(min(i, remaining_points), 30); % 窓のサイズを設定
+    windowSize = min(min(i, remaining_points), 30);%始点と終点付近で点間隔が縮まるのを防ぐ
+    %windowSize = 30;
 
     % shortcutmap_radiusが200以下のときはwindowSizeを1にする
     %{
@@ -92,6 +96,7 @@ for i = 2:n
     end
     %}
 
+    %{
     if i <= windowSize
         temp_x = sum(X(1:i)) / i; % Xの移動平均
         temp_y = sum(Y(1:i)) / i; % Yの移動平均
@@ -99,6 +104,15 @@ for i = 2:n
         temp_x = sum(X(i-windowSize+1:i)) / windowSize; % Xの移動平均
         temp_y = sum(Y(i-windowSize+1:i)) / windowSize; % Yの移動平均
     end
+    %}
+
+    half_window = floor((windowSize - 1) / 2);%中央移動平均
+
+    start_idx = max(1, i - half_window);
+    end_idx = min(n, i + half_window);
+    
+    temp_x = sum(X(start_idx:end_idx)) / (end_idx - start_idx + 1);
+    temp_y = sum(Y(start_idx:end_idx)) / (end_idx - start_idx + 1);
     
     euclidean_dist = sqrt((temp_x - X_smooth(end))^2 + (temp_y - Y_smooth(end))^2);
 
@@ -108,20 +122,19 @@ for i = 2:n
         Y_smooth = [Y_smooth temp_y];
         
         % 新しい角度を計算
+        % 新しい角度を計算
         dx = temp_x - X_smooth(end-1); % x方向の差
         dy = temp_y - Y_smooth(end-1); % y方向の差
         new_th2 = atan2(dy, dx); % 前の座標との角度を計算
-
-        % atan2の例外処理
-        delta_th2 = new_th2 - Th_smooth(end);
-        if delta_th2 > pi
-            new_th2 = new_th2 - 2 * pi;
-        elseif delta_th2 < -pi
-            new_th2 = new_th2 + 2 * pi;
-        end
-
+        
+        % unwrap を使用して不連続なジャンプを防ぐ
+        new_th2 = unwrap([Th_smooth(end), new_th2]);
+        new_th2 = new_th2(end); % 最新の値を取得
+        
+        % 角度の変化量を計算
         delta_th3 = new_th2 - Th_smooth(end); % 角速度の差分
         
+        % 配列に追加
         Th_smooth = [Th_smooth new_th2]; % 補正した角度を使用
         Th_delta = [Th_delta delta_th3];
 
@@ -211,3 +224,35 @@ grid on
 grid minor
 axis equal
 legend('Original MAP (red)', 'Shortcut MAP (blue)')
+
+figure(2);
+subplot(2,1,1)
+plot(Th)
+grid on
+grid minor
+title('original map')
+ax1 = gca; % 現在の軸を取得
+
+subplot(2,1,2)
+plot(Th_smooth)
+grid on
+grid minor
+title('shortcut map')
+ax2 = gca; % 現在の軸を取得
+linkaxes([ax1, ax2], 'xy'); % x 軸を同期（y 軸も同期したい場合は 'xy' に変更）
+
+figure(3);
+subplot(2,1,1)
+plot(theta)
+grid on
+grid minor
+title('originmap rad/s')
+ay1 = gca; % 現在の軸を取得
+
+subplot(2,1,2)
+plot(Th_delta)
+grid on
+grid minor
+title('shortcupmap rad/s')
+ay2 = gca; % 現在の軸を取得
+linkaxes([ay1, ay2], 'xy'); % x 軸を同期（y 軸も同期したい場合は 'xy' に変更）
