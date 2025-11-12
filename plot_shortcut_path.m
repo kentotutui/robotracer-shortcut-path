@@ -1,4 +1,5 @@
-data = load("2025AllJapan_Dis,theta.txt");
+data = load("2025AllJapan_stu_Dis,theta.txt");
+%data = load("2025AllJapan_Dis,theta.txt");
 %data = load("2024AllJapan_Dis,theta.txt");
 %data = load("reRoeasymap_Dis,theta.txt");
 %data = load("reRomap_xy.txt");
